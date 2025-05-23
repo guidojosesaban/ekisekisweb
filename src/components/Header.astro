@@ -1,0 +1,30 @@
+---
+import '../styles/global.css';
+import '../styles/header.css';
+
+const currentPath = Astro.url.pathname;
+---
+
+<header>
+  <a class="logo" href="/">EKIS EKIS</a>
+  <nav>
+    <ul>
+      <li><a href="/" class={currentPath === '/' ? 'active' : ''}>INICIO</a></li>
+      <li><a href="/lanzamientos" class={currentPath === '/lanzamientos' ? 'active' : ''}>LANZAMIENTOS</a></li>
+      <li><a href="/radioshow" class={currentPath === '/radioshow' ? 'active' : ''}>RADIOSHOW</a></li>
+      <li><a href="/historia" class={currentPath === '/historia' ? 'active' : ''}>HISTORIA</a></li>
+      <li><a href="/highlights" class={currentPath === '/highlights' ? 'active' : ''}>HIGHLIGHTS</a></li>
+      <li><a href="/worldwide" class={currentPath === '/worldwide' ? 'active' : ''}>WORLDWIDE</a></li>
+      <li><a href="/contacto" class={currentPath === '/contacto' ? 'active' : ''}>CONTACTO</a></li>
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .active {
+    /* Aquí puedes definir el estilo único para el enlace activo */
+    font-weight: bold;
+    color: rgb(236 72 153 / var(--tw-text-opacity, 1)); /* Ejemplo: usando una variable CSS */
+    /* Otros estilos que desees aplicar */
+  }
+</style>

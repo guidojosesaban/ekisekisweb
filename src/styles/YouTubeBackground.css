@@ -1,0 +1,71 @@
+.youtube-background-container {
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 4rem);
+  box-sizing: border-box;
+  width: 100vw;
+}
+.youtube-player-iframe-container {
+  width: auto;
+  aspect-ratio: 16 / 9;
+  background-color: #000;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* Aseguramos que el contenido interno (iframe o imagen de fallback) se muestre correctamente */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc((100vh - 4rem) - 8rem);
+}
+.youtube-player-iframe-container img {
+  /* Estilo para la imagen de fallback */
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px; /* Para que coincida con el contenedor si la imagen es más pequeña */
+}
+.video-overlay {
+  /* Estilos si necesitas una capa semitransparente sobre el video */
+}
+.video-controls {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+}
+.video-controls.hidden {
+  /* Clase para ocultar controles si el video falla */
+  display: none !important;
+}
+.video-controls button {
+  background-color: transparent;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+.video-controls button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.video-controls button img {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+.hidden {
+  display: none !important;
+}
+
+@media screen and (max-width: 1000px) {
+  * {
+    background: red;
+  }
+}

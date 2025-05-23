@@ -1,0 +1,313 @@
+---
+// src/components/YouTubeBackground.astro
+// Importa los estilos CSS. Asegúrate de que este archivo exista y tenga los estilos necesarios.
+import "../styles/YouTubeBackground.css";
+
+// Define las propiedades que el componente aceptará.
+export interface Props {
+  videoId: string; // ID del video de YouTube (ej: 'dQw4w9WgXcQ')
+  rewindSeconds?: number; // Segundos para retroceder
+  ffwdSeconds?: number; // Segundos para adelantar
+  initialMute?: boolean; // Si el video debe empezar silenciado (recomendado para autoplay)
+}
+
+// Desestructura las props con valores por defecto.
+const {
+  videoId,
+  rewindSeconds = 10,
+  ffwdSeconds = 10,
+  initialMute = true, // Por defecto, el video empieza silenciado.
+} = Astro.props;
+
+// Genera un ID base único para este componente.
+// Esto es crucial si planeas usar múltiples instancias de YouTubeBackground en la misma página,
+// para evitar colisiones de IDs en los elementos del DOM y en las instancias del reproductor.
+const uniqueComponentId = "ytbg_" + Math.random().toString(36).substring(2, 9);
+
+// IDs únicos para los elementos del DOM que el script necesitará manipular.
+const playerContainerId = `Youtubeer-container-${uniqueComponentId}`;
+const videoControlsId = `video-controls-${uniqueComponentId}`;
+const rewindBtnId = `rewind-btn-${uniqueComponentId}`;
+const playPauseBtnId = `play-pause-btn-${uniqueComponentId}`;
+const ffwdBtnId = `ffwd-btn-${uniqueComponentId}`;
+const muteUnmuteBtnId = `mute-unmute-btn-${uniqueComponentId}`;
+---
+
+<div class="youtube-background-container" aria-label="Reproductor de video de fondo de YouTube">
+  <div id={playerContainerId} class="youtube-player-iframe-container">
+    <p style="color:white; text-align:center; padding:20px;">Cargando video...</p>
+  </div>
+
+  <div class="video-overlay"></div>
+
+  <div id={videoControlsId} class="video-controls">
+    <button id={rewindBtnId} type="button" aria-label={`Retroceder ${rewindSeconds} segundos`} title={`Retroceder ${rewindSeconds}s`}>
+      <img src="/media/icons/replay.svg" alt="Retroceder" />
+    </button>
+    <button id={playPauseBtnId} type="button" aria-label="Reproducir Video" title="Reproducir">
+      <img src="/media/icons/play.svg" alt="Reproducir" class="play-icon" />
+      <img src="/media/icons/pause.svg" alt="Pausar" class="pause-icon hidden" />
+    </button>
+    <button id={ffwdBtnId} type="button" aria-label={`Adelantar ${ffwdSeconds} segundos`} title={`Adelantar ${ffwdSeconds}s`}>
+      <img src="/media/icons/forward.svg" alt="Adelantar" />
+    </button>
+    <button id={muteUnmuteBtnId} type="button" aria-label={initialMute ? "Activar Sonido" : "Silenciar Sonido"} class="sound-button" title={initialMute ? "Activar Sonido" : "Silenciar"}>
+      <img src="/media/icons/volume_up.svg" alt="Sonido Activado" class="sound-on-icon {initialMute ? 'hidden' : ''}" />
+      <img src="/media/icons/volume_down.svg" alt="Sonido Silenciado" class="sound-off-icon {initialMute ? '' : 'hidden'}" />
+    </button>
+  </div>
+</div>
+
+<script define:vars={{ videoId, playerContainerId, videoControlsId, rewindBtnId, playPauseBtnId, ffwdBtnId, muteUnmuteBtnId, rewindSeconds, ffwdSeconds, initialMute }}>
+  // Variable global para la promesa de la API de YouTube, asegura que se cargue una sola vez.
+  if (typeof window.ytApiPromise === 'undefined') {
+    window.ytApiPromise = new Promise((resolve, reject) => {
+      // Si la API ya está cargada (por ejemplo, por otro componente), resuelve inmediatamente.
+      if (window.YT && window.YT.Player) {
+        console.log("YouTube IFrame API ya estaba cargada.");
+        resolve();
+        return;
+      }
+
+      // Crea la etiqueta <script> para cargar la API de YouTube.
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api"; // URL oficial y correcta de la API.
+
+      // La API de YouTube llamará a esta función global cuando esté lista.
+      window.onYouTubeIframeAPIReady = () => {
+        console.log("YouTube IFrame API está lista (onYouTubeIframeAPIReady).");
+        resolve();
+        delete window.onYouTubeIframeAPIReady; // Limpia la función global después de usarla.
+      };
+
+      tag.onload = () => {
+        // El script se cargó, onYouTubeIframeAPIReady debería ser llamado por la API.
+        console.log("Script de la API de YouTube cargado (tag.onload).");
+      };
+      
+      tag.onerror = () => {
+        console.error("Error crítico: No se pudo cargar el script de la API de YouTube IFrame desde:", tag.src);
+        if (window.onYouTubeIframeAPIReady) delete window.onYouTubeIframeAPIReady;
+        reject(new Error("Error al cargar la API de YouTube. El video no funcionará."));
+      };
+
+      // Inserta la etiqueta <script> en el DOM.
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      } else {
+        // Fallback si no hay otros scripts, aunque es raro en una página completa.
+        document.head.appendChild(tag);
+      }
+    });
+  }
+
+  // Usa la promesa de la API.
+  window.ytApiPromise.then(() => {
+    // La API está lista, podemos crear el reproductor.
+    let player;
+    const currentVideoId = videoId;
+    
+    // Determina el origen del sitio web actual. Esto es crucial para que YouTube permita la inserción.
+    // No es la IP del usuario, sino el dominio de tu sitio web (ej: "https://www.tusitio.com").
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
+    // Obtiene referencias a los elementos del DOM.
+    const playerContainerElement = document.getElementById(playerContainerId);
+    const videoControlsElement = document.getElementById(videoControlsId);
+    const playPauseBtn = document.getElementById(playPauseBtnId);
+    const muteUnmuteBtn = document.getElementById(muteUnmuteBtnId);
+    const rewindBtn = document.getElementById(rewindBtnId);
+    const ffwdBtn = document.getElementById(ffwdBtnId);
+
+    // Verifica que el contenedor del reproductor exista.
+    if (!playerContainerElement) {
+      console.error(`Error: Contenedor del reproductor '${playerContainerId}' no encontrado.`);
+      return;
+    }
+    // Limpiar el mensaje de "Cargando video..."
+    playerContainerElement.innerHTML = ''; 
+
+    // Verifica si los botones existen (deberían, pero es una buena práctica).
+    if (!playPauseBtn || !muteUnmuteBtn || !rewindBtn || !ffwdBtn || !videoControlsElement) {
+        console.error("Error: Uno o más botones de control no se encontraron. ID base:", uniqueComponentId);
+        if (videoControlsElement) videoControlsElement.classList.add('hidden'); // Ocultar controles si faltan botones
+        return;
+    }
+    const playIcon = playPauseBtn.querySelector('.play-icon');
+    const pauseIcon = playPauseBtn.querySelector('.pause-icon');
+    const soundOnIcon = muteUnmuteBtn.querySelector('.sound-on-icon');
+    const soundOffIcon = muteUnmuteBtn.querySelector('.sound-off-icon');
+    
+    if (!playIcon || !pauseIcon || !soundOnIcon || !soundOffIcon) {
+        console.error("Error: Iconos para los botones de control no encontrados.");
+        videoControlsElement.classList.add('hidden');
+        return;
+    }
+
+    // Crea una nueva instancia del reproductor de YouTube.
+    try {
+      player = new YT.Player(playerContainerId, {
+        videoId: currentVideoId,
+        playerVars: {
+          autoplay: 1,                      // Autoiniciar reproducción.
+          mute: initialMute ? 1 : 0,        // Silenciar inicialmente si initialMute es true.
+          controls: 0,                      // Ocultar controles nativos de YouTube.
+          loop: 1,                          // Repetir el video.
+          playlist: currentVideoId,         // Necesario para que loop funcione con un solo video.
+          playsinline: 1,                   // Reproducir inline en iOS, evita pantalla completa automática.
+          showinfo: 0,                      // No mostrar información del video (título, subidor) - obsoleto pero no daña.
+          modestbranding: 1,                // Usar un logo de YouTube más pequeño.
+          iv_load_policy: 3,                // No mostrar anotaciones del video.
+          fs: 0,                            // Deshabilitar botón de pantalla completa nativo.
+          rel: 0,                           // No mostrar videos relacionados al final.
+          origin: currentOrigin,            // MUY IMPORTANTE: Dominio de tu sitio web.
+          disablekb: 1,                     // Deshabilitar controles de teclado nativos.
+          // 'enablejsapi': 1               // Implícito al usar YT.Player, pero puede ser explícito.
+        },
+        events: {
+          onReady: onPlayerReady,
+          onStateChange: onPlayerStateChange,
+          onError: onPlayerError,
+        },
+      });
+    } catch (e) {
+      console.error("Error al crear la instancia de YT.Player:", e);
+      displayErrorInContainer("Error al inicializar el reproductor.");
+      hideCustomControls();
+    }
+
+    // --- Funciones Auxiliares para el Reproductor ---
+    function displayErrorInContainer(htmlMessage) {
+      if (playerContainerElement) {
+        playerContainerElement.innerHTML = `<div class="youtube-player-error">${htmlMessage}</div>`;
+      }
+    }
+
+    function hideCustomControls() {
+      if (videoControlsElement) {
+        videoControlsElement.classList.add('hidden');
+      }
+    }
+    
+    // --- Manejadores de Eventos del Reproductor ---
+    function onPlayerReady(event) {
+      console.log(`Reproductor listo para video ID: ${currentVideoId}. Estado inicial mute: ${initialMute}`);
+      // Autoplay y mute se configuran en playerVars.
+      // Como una doble verificación, especialmente si autoplay es rápido:
+      if (initialMute && player.isMuted && !player.isMuted()) {
+        player.mute();
+      }
+      // Actualiza el estado visual de los botones.
+      updatePlayPauseButton();
+      updateMuteUnmuteButton();
+    }
+
+    function onPlayerStateChange(event) {
+      console.log(`Cambio de estado del reproductor (ID: ${currentVideoId}): ${event.data}`);
+      updatePlayPauseButton(); // Actualiza el botón de Play/Pausa según el estado.
+    }
+
+    function onPlayerError(event) {
+      console.error(`Error del reproductor (ID: ${currentVideoId}). Código: ${event.data}`);
+      // Códigos de error comunes: 2 (ID inválido), 5 (HTML5 error), 100 (no encontrado), 101/150 (no embeddable).
+      // Ver: https://developers.google.com/youtube/iframe_api_reference#onError
+      
+      hideCustomControls(); // Oculta controles personalizados ante un error.
+      
+      const videoLink = `https://www.youtube.com/watch?v=${currentVideoId}`;
+      const thumbnailSrc = `https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`;
+      const placeholderFallback = `https://placehold.co/800x450/1f2937/e5e7eb?text=Video+no+disponible%0A(${currentVideoId})%0AClic+para+ver+en+YouTube`;
+
+      displayErrorInContainer(`
+        <p>El video (ID: ${currentVideoId}) no está disponible o no se pudo cargar (Error ${event.data}).</p>
+        <a href="${videoLink}" target="_blank" title="Ver en YouTube" style="display:block; margin-top:10px;">
+          <img 
+            src="${thumbnailSrc}" 
+            alt="Video no disponible. Clic para ver en YouTube." 
+            style="width:100%; height:auto; max-width:320px; object-fit:cover; border:1px solid #555;"
+            onerror="this.onerror=null; this.src='${placeholderFallback}';"
+          />
+        </a>
+      `);
+    }
+
+    // --- Funciones para Actualizar la UI de los Botones ---
+    function updatePlayPauseButton() {
+      if (!player || typeof player.getPlayerState !== 'function' || !playIcon || !pauseIcon) return;
+      const playerState = player.getPlayerState();
+      if (playerState === YT.PlayerState.PLAYING) {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+        playPauseBtn.setAttribute('aria-label', 'Pausar Video');
+        playPauseBtn.setAttribute('title', 'Pausar');
+      } else {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+        playPauseBtn.setAttribute('aria-label', 'Reproducir Video');
+        playPauseBtn.setAttribute('title', 'Reproducir');
+      }
+    }
+
+    function updateMuteUnmuteButton() {
+      if (!player || typeof player.isMuted !== 'function' || !soundOnIcon || !soundOffIcon) return;
+      if (player.isMuted()) {
+        soundOnIcon.classList.add('hidden');
+        soundOffIcon.classList.remove('hidden');
+        muteUnmuteBtn.setAttribute('aria-label', 'Activar Sonido');
+        muteUnmuteBtn.setAttribute('title', 'Activar Sonido');
+      } else {
+        soundOnIcon.classList.remove('hidden');
+        soundOffIcon.classList.add('hidden');
+        muteUnmuteBtn.setAttribute('aria-label', 'Silenciar Sonido');
+        muteUnmuteBtn.setAttribute('title', 'Silenciar');
+      }
+    }
+
+    // --- Event Listeners para los Controles Personalizados ---
+    playPauseBtn.addEventListener('click', () => {
+      if (!player || typeof player.getPlayerState !== 'function') return;
+      const playerState = player.getPlayerState();
+      if (playerState === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
+    });
+
+    muteUnmuteBtn.addEventListener('click', () => {
+      if (!player || typeof player.isMuted !== 'function') return;
+      if (player.isMuted()) {
+        player.unMute();
+      } else {
+        player.mute();
+      }
+      updateMuteUnmuteButton(); // El estado de mute se actualiza síncronamente.
+    });
+
+    rewindBtn.addEventListener('click', () => {
+      if (!player || typeof player.getCurrentTime !== 'function') return;
+      const currentTime = player.getCurrentTime();
+      player.seekTo(Math.max(0, currentTime - rewindSeconds), true);
+    });
+
+    ffwdBtn.addEventListener('click', () => {
+      if (!player || typeof player.getDuration !== 'function' || typeof player.getCurrentTime !== 'function') return;
+      const currentTime = player.getCurrentTime();
+      const duration = player.getDuration();
+      player.seekTo(Math.min(duration, currentTime + ffwdSeconds), true);
+    });
+
+  }).catch(error => {
+    // Este catch maneja errores de la carga de la API de YouTube (promesa rechazada).
+    console.error("Fallo final al cargar o usar la API de YouTube:", error);
+    const playerContainer = document.getElementById(playerContainerId);
+    if (playerContainer) {
+      playerContainer.innerHTML = `<div class="youtube-player-error">Error crítico al cargar el reproductor de YouTube. ${error.message || ''}</div>`;
+    }
+    const controls = document.getElementById(videoControlsId);
+    if (controls) {
+      controls.classList.add('hidden');
+    }
+  });
+</script>

@@ -1,0 +1,247 @@
+.home_page{
+    background: url(../media/home-background.jpg);
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+}
+
+.home_page_container{
+    background: #000000;
+        min-height: 100vh;
+}
+
+
+.YouTube-txt{
+    color: #ffffff;
+    font-size: 2.5rem;
+    position: absolute;
+    z-index: 3;
+    width: 100vw;
+}
+
+
+
+
+
+.hero-text{
+    position: absolute;
+    top: calc((100vh - 4rem) / 2 - 6rem);
+    text-align: center;
+    width: 100vw;
+    color: #e0e0e0;
+    z-index: 3;
+    font-size: 6rem;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    user-select: none;
+     text-shadow:
+      4px 4px 0 #3700ff,
+      6px 6px 0 #6f00ff,
+      8px 8px 0 #d400ff,
+      10px 10px 6px rgba(0,0,0,0.3);
+}
+
+ .socialMedia-platforms {
+    min-height: 6rem;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: center;
+  }
+
+  a.button-predet{
+    margin: 0rem 1rem;
+    text-decoration: none; /* Remove underline from links */
+  }
+  
+  /* SPOTIFY BUTTON */
+  a.spotify-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: "Montserrat", sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+    border-radius: 4rem;
+  }
+
+  a.spotify-button svg path {
+    fill: white;
+    transition: fill 0.3s ease;
+  }
+
+  a.spotify-button:hover {
+    background-color: #1ed760; /* Spotify green */
+    color: black;
+    transform: scale(1.1);
+    transition: 250ms;
+  }
+
+  a.spotify-button:hover svg path {
+    fill: black;
+  }
+
+  /* SOUNDCLOUD BUTTON */
+  a.soundcloud-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: "Montserrat", sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+    border-radius: 4rem;
+  }
+
+  a.soundcloud-button svg path,
+  a.soundcloud-button svg circle,
+  a.soundcloud-button svg rect {
+    fill: white;
+    transition: fill 0.3s ease;
+  }
+
+  a.soundcloud-button:hover {
+    background-color: #ff5500; /* SoundCloud orange */
+    transform: scale(1.1);
+    transition: 250ms;
+  }
+
+  /* BEATPORT BUTTON */
+  a.beatport-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: "Montserrat", sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+    font-weight: bold;
+    border-radius: 4rem;
+  }
+
+  a.beatport-button svg path {
+    fill: white;
+    transition: fill 0.3s ease;
+  }
+
+  a.beatport-button:hover {
+    background-color: #27ff9c; /* Beatport green */
+    color: #000;
+    transform: scale(1.1);
+    transition: 250ms;
+  }
+
+  a.beatport-button:hover svg path {
+    fill: black;
+  }
+
+  /* YOUTUBE BUTTON */
+  a.youtube-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: "Montserrat", sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+    font-weight: bold;
+    border-radius: 4rem;
+  }
+
+  a.youtube-button svg path {
+    fill: white;
+    transition: fill 0.3s ease;
+  }
+
+  a.youtube-button:hover {
+    background-color: #ff0000; /* YouTube red */
+    transform: scale(1.1);
+    transition: 250ms;
+  }
+
+
+  /* INSTAGRAM BUTTON */
+  a.instagram-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+      background 0.4s ease,
+      color 0.4s ease;
+    font-weight: bold;
+    border-radius: 4rem;
+    text-decoration: none;
+  }
+
+  a.instagram-button svg path {
+    fill: white;
+    transition: fill 0.4s ease;
+  }
+
+  a.instagram-button:hover {
+    background: linear-gradient(
+      45deg,
+      #f09433,
+      #e6683c,
+      #dc2743,
+      #cc2366,
+      #bc1888
+    );
+    transform: scale(1.1);
+    transition: 250ms;
+  }
+
+  .logo-hero-container{
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0rem;
+
+  }
+
+ .logo-hero{
+    text-decoration: none;
+     background-image: linear-gradient(to right, #EC4899, #8B5CF6);
+     -webkit-background-clip: text; /* Para compatibilidad con WebKit (Chrome, Safari, Edge) */
+    background-clip: text;
+    color: transparent; /* Tamaño de ejemplo */
+    font-weight: bold;
+    font-size: 6rem;
+    text-align: center;
+}
